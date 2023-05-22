@@ -1,3 +1,5 @@
+// ONLY USE THIS SCRIPT IF YOU WANT TO INSTALL ALL APP ENGINE PRODUCTS! 
+
 function installSpecificAppsUtah(loginType, loginKey) {
 
     // Recommend reading this if you have questions about CICD API:
