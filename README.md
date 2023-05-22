@@ -1,4 +1,4 @@
-# sn-package-upgrade-util
+# Unofficial ServiceNow Package Upgrade Utility Script
 
 ## Table of contents
 - [CreatorWorkflowsNow.github.io](#creatorworkflowsnowgithubio)
