@@ -1,15 +1,13 @@
 # Unofficial ServiceNow Package Upgrade Utility Script
 
 ## Table of contents
-- [CreatorWorkflowsNow.github.io](#creatorworkflowsnowgithubio)
-  - [Table of contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
-  - [Troubleshooting](#troubleshooting)
-  - [FAQ](#faq)
-  - [Maintainers](#maintainers)
+- [Introduction](#introduction)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Maintainers](#maintainers)
 
 ## Introduction
 
