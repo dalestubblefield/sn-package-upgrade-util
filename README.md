@@ -38,7 +38,10 @@ You will need an admin credential or the sys_id of a Connection & Credential Ali
 
 ## Troubleshooting
 
-- Attend the ServiceNow Scripting Fundamentals course
+1) Begin your [ServiceNow Application Career Developer Journey](https://nowlearning.servicenow.com/lxp?id=journey_overview&journey_id=cbdb13f91b5aa5d013f9a6c1b24bcb44) at Now Learning
+1) Complete the entire course from Associate Application Developer to Professional Application Developer to Expert Application Developer
+1) Apply the skills you have acquired to your problem.
+
 
 ## FAQ
 
