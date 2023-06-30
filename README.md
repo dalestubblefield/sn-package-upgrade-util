@@ -11,14 +11,16 @@
 
 ## Introduction
 
-Log in to your ServiceNow instance using your admin credentials.
-Navigate to the "System Definition" section in the application navigator.
-Click on "Background Scripts" to open the background script editor.
-In the background script editor, paste this script.
-Change "In Scope" to "Global".
-Click Run Script.
+1) Log in to your ServiceNow instance using your admin credentials.
+1) Navigate to the "System Definition" section in the application navigator.
+1) Click on "Background Scripts" to open the background script editor.
+1) In the background script editor, paste the contents of the script "upgradeUtil.js". 
+1) Change "In Scope" to "Global".
+1) Click Run Script.
 
 Read further instructions in the script output. 
+
+BONUS: I have an additional file named "Install_Utah_AppEngine_allProducts.js" to show you how to install specific packages in a repeatable manner. 
 
 Submit bug reports and feature suggestions, or track changes by contacting [Dale Stubblefield](mailto:dale.stubblefield@servicenow.com).
 
@@ -32,7 +34,7 @@ This is a background script.
 
 ## Configuration
 
-You will need an admin credentail or the sys_id of a Connection & Credential Alias for a service account with the 'admin' role.  (Yes, this means you can run this against remote instances...)
+You will need an admin credential or the sys_id of a Connection & Credential Alias for a service account with the 'admin' role.  (Yes, this means you can run this against remote instances...)
 
 ## Troubleshooting
 
