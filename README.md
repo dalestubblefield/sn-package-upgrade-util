@@ -1,13 +1,15 @@
 # Unofficial ServiceNow Package Upgrade Utility Script
 
 ## Table of contents
-- [Introduction](#introduction)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [Maintainers](#maintainers)
+- [Unofficial ServiceNow Package Upgrade Utility Script](#unofficial-servicenow-package-upgrade-utility-script)
+  - [Table of contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Troubleshooting](#troubleshooting)
+  - [FAQ](#faq)
+  - [Maintainers](#maintainers)
 
 ## Introduction
 
@@ -34,7 +36,7 @@ This is a background script.
 
 ## Configuration
 
-You will need an admin credential or the sys_id of a Connection & Credential Alias for a service account with the 'admin' role.  (Yes, this means you can run this against remote instances...)
+You will need an admin credential or the sys_id of a Connection & Credential Alias for a service account with the 'admin' role.
 
 ## Troubleshooting
 
