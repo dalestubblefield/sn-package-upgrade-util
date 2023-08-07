@@ -11,7 +11,7 @@ upgradeUtil.prototype = {
         // https://docs.servicenow.com/bundle/utah-api-reference/page/integrate/inbound-rest/concept/cicd-api.html#title_cicd-POST-app-batch-install
 
         // This will go into your Batch Install Plan Notes
-        var scriptName = 'Requested via bg script';
+        var scriptName = 'Requested via bg script from https://github.com/dalestubblefield/sn-package-upgrade-util';
 
         // Only process this many packages
         var debug_limit = 200;
@@ -75,7 +75,7 @@ upgradeUtil.prototype = {
         if (loginType === "") {
             log.push("\n ERROR: loginType is blank");
             gs.info(log);
-            _makeCreds();
+            this._makeCreds();
             return;
         }
 
@@ -99,20 +99,20 @@ upgradeUtil.prototype = {
                 if (basicUserName == null) {
                     log.push("\n ERROR: Connection Alias username issue");
                     gs.info(log);
-                    _makeCreds();
+                    this._makeCreds();
                     return;
                 }
 
                 if (basicPassword == null) {
                     log.push("\n ERROR: Connection Alias password issue");
                     gs.info(log);
-                    _makeCreds();
+                    this._makeCreds();
                     return;
                 }
             } else {
                 log.push("\n --> Connection Alias unknown issue - ABORTING!!!");
                 gs.info(log);
-                _makeCreds();
+                this._makeCreds();
                 return;
             }
         } else {
