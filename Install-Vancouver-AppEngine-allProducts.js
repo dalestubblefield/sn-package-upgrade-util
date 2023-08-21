@@ -149,7 +149,7 @@ function installSpecificAppsUtah(loginType, loginKey) {
         id: '05bf96091b2245107cc3ec26b04bcb73',
         load_demo_data: true,
         notes: 'Process Automation Content',
-        requested_version: '23.0.3',
+        requested_version: '23.0.5',
         type: 'application'
     };
     logEachPackage && log.push("\n     --> " + packageDetails.notes);
@@ -266,7 +266,7 @@ function installSpecificAppsUtah(loginType, loginKey) {
         id: 'ef88d740da3f1e867efdffbdabc7fe13',
         load_demo_data: true,
         notes: 'Table Builder for App Engine',
-        requested_version: '23.1.1',
+        requested_version: '24.0.1',
         type: 'application'
     };
     logEachPackage && log.push("\n     --> " + packageDetails.notes);
@@ -299,7 +299,7 @@ function installSpecificAppsUtah(loginType, loginKey) {
         id: 'eb4ae6d890a67573636aba5dd61ab370',
         load_demo_data: true,
         notes: 'Workspace Builder for App Engine',
-        requested_version: '23.2.0',
+        requested_version: '24.0.1',
         type: 'application'
     };
     logEachPackage && log.push("\n     --> " + packageDetails.notes);
