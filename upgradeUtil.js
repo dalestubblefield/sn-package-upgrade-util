@@ -311,6 +311,19 @@ upgradeUtil.prototype = {
             // Convert the strings to arrays of integers
             var versionArr = versionStr.split('.').map(Number);
             var assignedVersionArr = assignedVersionStr.split('.').map(Number);
+gs.info(latestVersionStr);
+            if (latestVersionStr !== null) {
+    var latestVersionArr = latestVersionStr.split('.').map(Number);
+    // Rest of the code that uses latestVersionArr
+} else {
+    // Handle the case where latestVersionStr is null
+    // For example, you can set a default value or skip this part of the code
+                var latestVersionStr = "0,0,0";
+                 var latestVersionArr = latestVersionStr.split('.').map(Number);
+}
+
+
+            
             var latestVersionArr = latestVersionStr.split('.').map(Number);
 
             // Compare the arrays element-wise
