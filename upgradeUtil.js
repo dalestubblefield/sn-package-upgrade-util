@@ -1,3 +1,27 @@
+/*
+ * Script: Upgrade Utility Script
+ * Author: Dale Stubblefield
+ * Date: 24/Aug/2023
+ *
+ * Description:
+ * This script is designed to analyze plugin and store app upgrades in a ServiceNow environment.
+ * It retrieves attachment data, compares version numbers, and detects available upgrades.
+ *
+ * Usage:
+ * 1. This script should be executed in a ServiceNow instance with appropriate permissions.
+ * 2. The script will analyze plugin attachments and store app payloads for available upgrades.
+ * 3. It outputs information about the number of plugins and store apps installed, upgrades detected,
+ *    and total upgrades available.
+ *
+ * Notes:
+ * - This script requires proper configuration of GlideRecords, attachment data, and JSON parsing.
+ * - Make sure to adjust verbosity levels to control the amount of logging output.
+ * - The script utilizes the ServiceNow platform to enhance upgrade tracking and management.
+ *
+ * Disclaimer:
+ * This script is provided as-is without any warranties. Use it at your own risk and ensure
+ * it's tested in a safe environment before applying to production instances.
+ */
 var upgradeUtil = Class.create();
 upgradeUtil.prototype = {
     initialize: function () {},
@@ -30,8 +54,6 @@ upgradeUtil.prototype = {
 
         // Get the list of upgrades
         var result = this.countUpgrades();
-
-
 
         var applicationsToUpgradeArr = result.prop1; // Array: packages
         /*
@@ -294,6 +316,8 @@ upgradeUtil.prototype = {
         var appsGr = new GlideRecord('sys_store_app');
         appsGr.orderBy('name');
         appsGr.addQuery('active', true);
+        appsGr.addQuery('hide_on_ui', false);
+        appsGr.addQuery('update_available', true);
         appsGr.query();
 
         var applicationsToUpgradeArr = []; // Create an empty JSON array
@@ -316,17 +340,17 @@ upgradeUtil.prototype = {
             // Compare the arrays element-wise
             for (var i = 0; i < versionArr.length; i++) {
                 if (versionArr[i] > assignedVersionArr[i] && versionArr[i] > latestVersionArr[i]) {
-                    log.push("\n --> " + notes + " version is highest value " + versionStr);
+                    //log.push("\n --> " + notes + " version is highest value " + versionStr);
                     upgrade_version = versionStr;
                     upgrade = 1;
                     break;
                 } else if (assignedVersionArr[i] > versionArr[i] && assignedVersionArr[i] > latestVersionArr[i]) {
-                    log.push("\n --> " + notes + " assigned_version is highest value " + assignedVersionStr);
+                    ////log.push("\n --> " + notes + " assigned_version is highest value " + assignedVersionStr);
                     upgrade_version = assignedVersionStr;
                     upgrade = 1;
                     break;
                 } else if (latestVersionArr[i] > versionArr[i] && latestVersionArr[i] > assignedVersionArr[i]) {
-                    log.push("\n --> " + notes + " latest_version is highest value " + latestVersionStr);
+                    //log.push("\n --> " + notes + " latest_version is highest value " + latestVersionStr);
                     upgrade_version = latestVersionStr;
                     upgrade = 1;
                     break;
@@ -352,10 +376,6 @@ upgradeUtil.prototype = {
         log.push("\n --> " + upgrades + " to upgrade");
         gs.info(log);
 
-        //return applicationsToUpgradeArr;
-
-        //var value1 = 10;
-        //var value2 = 20;
         return {
             prop1: applicationsToUpgradeArr,
             prop2: upgrades
@@ -376,6 +396,6 @@ var upgradeUtil = new upgradeUtil();
 //upgradeUtil.upgradeAllAvailable('admin', 'password');
 
 // =>OR USE A CONNECTION ALIAS
-//upgradeUtil.upgradeAllAvailable('alias', '752a91887740001038e286a2681061fb'); // sn_cicd_spoke.CICD
+upgradeUtil.upgradeAllAvailable('alias', '752a91887740001038e286a2681061fb'); // sn_cicd_spoke.CICD
 
 // For more info => https://docs.servicenow.com/csh?topicname=cicd-api.html&version=latest
