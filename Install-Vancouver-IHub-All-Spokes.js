@@ -316,4 +316,14 @@ function installSpecificAppsUtah(loginType, loginKey) {
 
     return;
 }
-installSpecificAppsUtah('alias');
+
+// OPTION 1
+var login = 'admin'; // An account with the 'admin' role
+var password = 'password'; //Replace with your password
+installSpecificAppsUtah(login, password);
+
+// OPTION 2
+// Use the default CICD Credential Alias
+// - you MUST reconfigure the Alias to be a "Connection & Credentail" alias and configure accordingly 
+// - keep the parameter as the string 'alias'
+//installSpecificAppsUtah('alias'); 
