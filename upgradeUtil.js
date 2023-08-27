@@ -21,65 +21,67 @@
  * Disclaimer:
  * This script is provided as-is without any warranties. Use it at your own risk and ensure
  * it's tested in a safe environment before applying to production instances.
+ * 
+ * References: 
+ * CICD API: https://docs.servicenow.com/csh?topicname=cicd-api.html&version=latest
  */
 var upgradeUtil = Class.create();
 upgradeUtil.prototype = {
-    initialize: function () {},
+    initialize: function () {
 
-    // more info => https://docs.servicenow.com/csh?topicname=cicd-api.html&version=latest
+        // Batch Install Plan Notes;
+        this.notes = 'Requested via bg script from https://github.com/dalestubblefield/sn-package-upgrade-util'
 
-    ////////////////////////////////////////////////////////////////////////////////
+        this.log = [];
+
+        // how many packages to process, SN only has less than 3000
+        this.limit = 20000;
+
+        this.verbosity = 2;
+        /* 
+         * 0 - only errors
+         * 1 - extra details
+         * 2 - debug
+         */
+    },
+
+    /**
+    * Upgrades All Available Applications
+    *
+    * @description This method initiates the process of upgrading available applications.
+    * It checks for available upgrades, prepares a payload for each upgrade, and submits
+    * upgrade requests using the ServiceNow REST API. The method supports both direct
+    * username/password authentication and using a Connection & Credential Alias.
+    *
+    * @param {string} loginType - The authentication type ('username' or 'alias').
+    * @param {string} loginKey - The username/password or Connection & Credential Alias ID.
+    *
+    * @memberof upgradeUtil
+    * @method upgradeAllAvailable
+    */
     upgradeAllAvailable: function (loginType, loginKey) {
-
-        // Recommend reading this if you have questions about CICD API:
-        // https://docs.servicenow.com/bundle/utah-api-reference/page/integrate/inbound-rest/concept/cicd-api.html#title_cicd-POST-app-batch-install
-
-        // This will go into your Batch Install Plan Notes
-        var scriptName = 'Requested via bg script from https://github.com/dalestubblefield/sn-package-upgrade-util';
-
-        // Only process this many packages
-        var debug_limit = 200;
-
-        var log = [];
-
         // Check if any inputs are missing
         if (!loginType) {
-            log.push("No inputs were provided. Please provide the required inputs.");
-            log.push("\nLike this:\ninstallSpecificAppsUtah(admin,password)");
-            log.push("\n\nOr this:\ninstallSpecificAppsUtah(alias,sys_id)");
-            gs.info(log);
+            (this.verbosity >= 0) && this.log.push("\nNo inputs were provided. Please provide the required inputs.");
+            (this.verbosity >= 0) && this.log.push("\nLike this:\ninstallSpecificAppsUtah('admin','password')");
+            (this.verbosity >= 0) && this.log.push("\n\nOr this:\ninstallSpecificAppsUtah('alias','sys_id')");
+            (this.verbosity >= 0) && gs.info(this.log);
             return;
         }
 
-
-        // Get the list of upgrades
-        var result = this.countUpgrades();
-
+        var result = this._analyzeUpgrades(); // Get the list of upgrades
         var applicationsToUpgradeArr = result.prop1; // Array: packages
-        /*
-            EXAMPLE PACKAGE
-
-            var packageDetails = {
-                notes: notes,
-                id: sys_id,
-                requested_version: upgrade_version,
-                load_demo_data: true,
-                type: "application"
-            
-            };
-        */
-
         var upgrades = result.prop2; // Integer: how many upgrades
-        if (upgrades == "0") {
-            log.push("\n --> No apps found to upgrade");
-            gs.info(log);
+
+        if (upgrades === "0") {
+            (this.verbosity >= 0) && this.log.push("\n --> No apps found to upgrade: Should quit here");
             return;
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // Build the payload 
-        ////////////////////////////////////////////////////////////////////////////////
-        notes = "Submitting " + upgrades + " apps to upgrade"; // This will go in the Batch Install Plan Notes
+        /*************************************************************
+         * Build the payload 
+         *************************************************************/
+        var notes = "Submitting " + upgrades + " apps to upgrade"; // This will go in the Batch Install Plan Notes
 
         // Create a JSON object containing the packages array
         var payload = {
@@ -87,31 +89,42 @@ upgradeUtil.prototype = {
             "notes": notes,
             "packages": applicationsToUpgradeArr
         };
+        /*
+         *  EXAMPLE PACKAGE
+         *  var packageDetails = {
+         *      notes: notes,
+         *      id: sys_id,
+         *      requested_version: upgrade_version,
+         *      load_demo_data: true,
+         *      type: "application"
+         *   };
+         */
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // check login type: username or Connection & Credential Alias
-        ////////////////////////////////////////////////////////////////////////////////
+        /*************************************************************
+         * check login type: username or Connection & Credential Alias
+         */
         var basicUserName = '';
         var basicPassword = '';
 
         if (loginType === "") {
-            log.push("\n ERROR: loginType is blank");
-            gs.info(log);
+            this.log.push("\n ERROR: loginType is blank");
             this._makeCreds();
+            (this.verbosity >= 0) && gs.info(this.log);
             return;
         }
 
         if (loginType == "alias") {
-            log.push("\n\n --> AUTHTYPE: Connection & Credential Alias")
             var aliasId = loginKey;
 
             if (!aliasId) {
-                log.push("\n --> WARNING: C&C Alias not provided, attempting to use default");
+                this.log.push("\n --> WARNING: C&C Alias not provided, attempting to use default");
                 aliasId = '752a91887740001038e286a2681061fb';
             }
 
-            // Set basic authentication using a username and password
-            // https://developer.servicenow.com/dev.do#!/reference/api/tokyo/server/sn_cc-namespace/connectioninfo-api
+            /*
+             * Set basic authentication using a username and password
+             * https://developer.servicenow.com/dev.do#!/reference/api/tokyo/server/sn_cc-namespace/connectioninfo-api
+             */
             var provider = new sn_cc.ConnectionInfoProvider();
             var connectionInfo = provider.getConnectionInfo(aliasId);
             if (connectionInfo != null) {
@@ -119,47 +132,45 @@ upgradeUtil.prototype = {
                 basicPassword = connectionInfo.getCredentialAttribute("password");
 
                 if (basicUserName == null) {
-                    log.push("\n ERROR: Connection Alias username issue");
-                    gs.info(log);
+                    this.log.push("\n ERROR: Connection Alias username issue");
                     this._makeCreds();
+                    gs.info(this.log);
                     return;
                 }
 
                 if (basicPassword == null) {
-                    log.push("\n ERROR: Connection Alias password issue");
-                    gs.info(log);
+                    this.log.push("\n ERROR: Connection Alias password issue");
                     this._makeCreds();
+                    gs.info(this.log);
                     return;
                 }
             } else {
-                log.push("\n --> Connection Alias unknown issue - ABORTING!!!");
-                gs.info(log);
+                this.log.push("\n --> Connection Alias unknown issue - ABORTING!!!");
                 this._makeCreds();
+                gs.info(this.log);
                 return;
             }
         } else {
-            log.push("\n\n --> Authentication will be with an account")
+            this.log.push("\n\n --> Authentication will be with an account")
             var basicUserName = loginType.toString();
             var basicPassword = loginKey.toString();
-            log.push("\n --> User will be => " + basicUserName);
-            //log.push("\n --> Key will be => " + basicPassword);
+            this.log.push("\n --> User will be => " + basicUserName);
         }
 
         if (basicUserName == '' || basicPassword == '') {
-            log.push("\n --> credentials not found.");
-            gs.info(log);
+            this.log.push("\n --> credentials not found.");
+            gs.info(this.log);
             return;
         }
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // for each package, call the API and create a Batch Install Plan per package
-        ////////////////////////////////////////////////////////////////////////////////
-        var limit = Math.min(applicationsToUpgradeArr.length, debug_limit);
+        /* 
+         * for each package, call the API and create a Batch Install Plan per package 
+         */
+        var limit = Math.min(applicationsToUpgradeArr.length, this.limit);
 
-        // Iterate through pkgsToUpgradeArray
+        // Iterate through applicationsToUpgradeArr
         for (var i = 0; i < limit; i++) {
 
-            //var packageDetails = pkgsToUpgradeArray.shift();
             var packageDetails = applicationsToUpgradeArr[i];
 
             // Create the payload object
@@ -175,38 +186,36 @@ upgradeUtil.prototype = {
 
                 var currentVersion = packages.getValue('version');
                 if (currentVersion != packageDetails.requested_version) {
-                    log.push("\n[ ] " + packageDetails.notes + " <<< Upgrade requested ");
+                    this.log.push("\n[ ] " + packageDetails.notes + " <<< Upgrade requested ");
                     payload.name = 'Upgrade ' + packageDetails.notes + ' to ' + packageDetails.requested_version;
-                    payload.notes = scriptName;
+                    payload.notes = this.notes;
                 } else {
-                    log.push("\n[✓] " + packageDetails.notes);
+                    this.log.push("\n[✓] " + packageDetails.notes);
                     continue;
                 }
             } else {
-                log.push("\n[ ] " + packageDetails.notes + " <<< Install requested ");
+                this.log.push("\n[ ] " + packageDetails.notes + " <<< Install requested ");
                 payload.name = 'Install ' + packageDetails.notes + ' to ' + packageDetails.requested_version;
-                payload.notes = scriptName;
+                payload.notes = this.notes;
             }
 
             // send the payload!
-            var allBatchPlans = this.callAPI(payload,basicUserName,basicPassword);
+            //var allBatchPlans = this._callAPI(payload, basicUserName, basicPassword);
+            var allBatchPlans = '';
         }
 
         if (allBatchPlans) {
-            log.push("\n\n --> Batch Plans: \n\n" + allBatchPlans);
-        } else {
-            log.push("\n\n --> Nothing submitted");
+            this.log.push("\n\n --> Batch Plans: \n\n" + allBatchPlans);
         }
 
-
-        gs.info(log);
-
+        gs.info(this.log);
+        return;
     },
 
     ////////////////////////////////////////////////////////////////////////////////
     // Call the API
     ////////////////////////////////////////////////////////////////////////////////
-    callAPI: function(payload,basicUserName,basicPassword) {
+    _callAPI: function (payload, basicUserName, basicPassword) {
 
         var request = new sn_ws.RESTMessageV2();
 
@@ -250,19 +259,17 @@ upgradeUtil.prototype = {
 
         // Check if the status code exists in the lookup object
         if (statusMessages.hasOwnProperty(statusCode)) {
-            //log.push("..." + statusMessages[statusCode]);
-            if (statusCode !== 200) {
-                //log.push("... Batch Install Plan Submitted successfully.");
-                //gs.info(log);
-                //return;
-            } else if (statusCode == 200) {
-                //log.push("... Batch Install Plan Submitted successfully.");
-                //return;
+            if (statusCode === 200) {
+                this.log.push("... Batch Install Plan Submitted successfully.");
+            } else {
+                (this.verbosity >= 0) && this.log.push("...ERROR: Request failed with unknown status code " + statusCode + "\n");
+                (this.verbosity >= 0) && gs.info(this.log);
+                return;
             }
         } else {
             // Unknown status code
-            log.push("...ERROR: Request failed with unknown status code " + statusCode + "\n");
-            //gs.info(log);
+            (this.verbosity >= 0) && this.log.push("...ERROR: Request failed with unknown status code " + statusCode + "\n");
+            (this.verbosity >= 0) && gs.info(this.log);
             return;
         }
 
@@ -277,36 +284,30 @@ upgradeUtil.prototype = {
                     var batchUrl = 'https://' + instanceName + '.service-now.com/nav_to.do?uri=sys_batch_install_plan.do?sys_id=' + value;
                     var allBatchPlans = 'https://' + instanceName + '.service-now.com/now/nav/ui/classic/params/target/sys_batch_install_plan_list';
 
-                    // log.push("\n\n --> Batch Plan URL: \n" + batchUrl + "\n");
-                    // log.push("\n\n --> All Batch Plans URL: \n" + allBatchPlans + "\n");
+                    // this.log.push("\n\n --> Batch Plan URL: \n" + batchUrl + "\n");
+                    // this.log.push("\n\n --> All Batch Plans URL: \n" + allBatchPlans + "\n");
                 }
             } else {
-                log.push("\n --> UNKNOWN ERROR! responseBodyResultLinkResults.hasOwnProperty(property) did not have any properties");
+                this.log.push("\n --> UNKNOWN ERROR! responseBodyResultLinkResults.hasOwnProperty(property) did not have any properties");
             }
         }
         return allBatchPlans;
     },
 
-    ////////////////////////////////////////////////////////////////////////////////
-    _makeCreds: function (log) {
-        var instanceName = gs.getProperty('instance_name');
-        var connection_url = 'https://' + instanceName + '.service-now.com/';
-        var alias_url = 'https://' + instanceName + '.service-now.com/nav_to.do?uri=sys_alias.do?sys_id=752a91887740001038e286a2681061fb';
-        var log = [];
-        log.push("\n\n --> NEED TO RECONFIGURE CICD CONNECTION ALIAS FOR SCRIPT");
-        log.push("\n\n --> Go to this URL:\n" + alias_url + "\n");
-        log.push("\n\n --> Change 'Type' to 'Connection and Credential and Save Record");
-        log.push("\n     (Stay on page)");
-        log.push("\n\n --> Create NEW Connection");
-        log.push("\n     NAME: (enter name)");
-        log.push("\n     Credential: (Create new record)");
-        log.push("\n     Connection URL: " + connection_url);
-        gs.info(log);
-        return;
-    },
-
-    ///////////////////////////////////////////////////////////////////////////////
-    countUpgrades: function () {
+    /**
+    * Analyzes sys_store_app records to identify apps that can be upgraded.
+    *
+    * @description This method compares version numbers in sys_store_app records
+    * and identifies applications that have available upgrades. It compiles a list
+    * of applications with upgrade details for further processing.
+    *
+    * @returns {Object} An object containing information about applications
+    * available for upgrade and the count of upgrades.
+    *
+    * @memberof upgradeUtil
+    * @method _analyzeUpgrades
+    */
+    _analyzeUpgrades: function () {
 
         var log = [];
 
@@ -317,13 +318,12 @@ upgradeUtil.prototype = {
         appsGr.orderBy('name');
         appsGr.addQuery('active', true);
         appsGr.addQuery('hide_on_ui', false);
-        appsGr.addQuery('update_available', true);
         appsGr.query();
 
         var applicationsToUpgradeArr = []; // Create an empty JSON array
         var upgrades = 0;
         var total = appsGr.getRowCount();
-        log.push("\n --> " + total + " apps found on [sys_store_app]");
+        //this.log.push("\n --> " + total + " apps found on [sys_store_app]");
 
         while (appsGr.next()) {
             var notes = appsGr.getValue('name');
@@ -332,50 +332,33 @@ upgradeUtil.prototype = {
             var versionStr = appsGr.getValue('version');
             var assignedVersionStr = appsGr.getValue('assigned_version');
             var latestVersionStr = appsGr.getValue('latest_version');
-            // Convert the strings to arrays of integers
+
             var versionArr = versionStr.split('.').map(Number);
             var assignedVersionArr = assignedVersionStr.split('.').map(Number);
-gs.info(latestVersionStr);
+
             if (latestVersionStr !== null) {
-    var latestVersionArr = latestVersionStr.split('.').map(Number);
-    // Rest of the code that uses latestVersionArr
-} else {
-    // Handle the case where latestVersionStr is null
-    // For example, you can set a default value or skip this part of the code
+                var latestVersionArr = latestVersionStr.split('.').map(Number);
+            } else {
+                // Handle the case where latestVersionStr is null
                 var latestVersionStr = "0,0,0";
-                 var latestVersionArr = latestVersionStr.split('.').map(Number);
-}
-
-
-            
-            var latestVersionArr = latestVersionStr.split('.').map(Number);
+                var latestVersionArr = latestVersionStr.split('.').map(Number);
+            }
 
             // Compare the arrays element-wise
             for (var i = 0; i < versionArr.length; i++) {
-                if (versionArr[i] > assignedVersionArr[i] && versionArr[i] > latestVersionArr[i]) {
-                    //log.push("\n --> " + notes + " version is highest value " + versionStr);
-                    upgrade_version = versionStr;
-                    upgrade = 1;
-                    break;
-                } else if (assignedVersionArr[i] > versionArr[i] && assignedVersionArr[i] > latestVersionArr[i]) {
-                    ////log.push("\n --> " + notes + " assigned_version is highest value " + assignedVersionStr);
-                    upgrade_version = assignedVersionStr;
-                    upgrade = 1;
-                    break;
-                } else if (latestVersionArr[i] > versionArr[i] && latestVersionArr[i] > assignedVersionArr[i]) {
-                    //log.push("\n --> " + notes + " latest_version is highest value " + latestVersionStr);
+                if (latestVersionArr[i] > assignedVersionArr[i] && latestVersionArr[i] > versionArr[i]) {
                     upgrade_version = latestVersionStr;
                     upgrade = 1;
                     break;
                 } else {
-                    continue; // version values are all the same. no upgrade	
+                    continue;
                 }
             }
 
             if (upgrade == 1) { // If upgrade found, add packageDetails to JSON to send to API later
                 var packageDetails = {
-                    notes: notes,
                     id: appsGr.getValue('sys_id'),
+                    notes: notes,
                     requested_version: upgrade_version,
                     load_demo_data: true,
                     type: "application"
@@ -386,14 +369,35 @@ gs.info(latestVersionStr);
             }
         }
 
-        log.push("\n --> " + upgrades + " to upgrade");
-        gs.info(log);
+        this.log.push("\n --> " + total + " apps found on [sys_store_app]");
+        if (upgrades === 0) {
+            this.log.push("\n --> No apps found to upgrade");
+        } else {
+            this.log.push("\n --> " + upgrades + " app(s) to upgrade");
+        }
 
         return {
             prop1: applicationsToUpgradeArr,
             prop2: upgrades
         }
+    },
 
+    ////////////////////////////////////////////////////////////////////////////////
+    _makeCreds: function (log) {
+        var instanceName = gs.getProperty('instance_name');
+        var connection_url = 'https://' + instanceName + '.service-now.com/';
+        var alias_url = 'https://' + instanceName + '.service-now.com/nav_to.do?uri=sys_alias.do?sys_id=752a91887740001038e286a2681061fb';
+        var log = [];
+        this.log.push("\n\n --> NEED TO RECONFIGURE CICD CONNECTION ALIAS FOR SCRIPT");
+        this.log.push("\n\n --> Go to this URL:\n" + alias_url + "\n");
+        this.log.push("\n\n --> Change 'Type' to 'Connection and Credential and Save Record");
+        this.log.push("\n     (Stay on page)");
+        this.log.push("\n\n --> Create NEW Connection");
+        this.log.push("\n     NAME: (enter name)");
+        this.log.push("\n     Credential: (Create new record)");
+        this.log.push("\n     Connection URL: " + connection_url);
+        //gs.info(this.log);
+        return;
     },
 
     type: 'upgradeUtil'
@@ -402,13 +406,10 @@ gs.info(latestVersionStr);
 ////////////////////////////////////////////////////////////////////////////////
 var upgradeUtil = new upgradeUtil();
 
-// => FIND OUT HOW MANY APPS AVAILABLE FOR UPGRADE IN CACHE	
-//upgradeUtil.countUpgrades();
-
-// => OR DEFINE YOUR OWN CREDENTIALS
+// OPTION 1: DEFINE YOUR OWN CREDENTIALS
 //upgradeUtil.upgradeAllAvailable('admin', 'password');
 
-// =>OR USE A CONNECTION ALIAS
+// OPTION 2: USE A CONNECTION ALIAS
 upgradeUtil.upgradeAllAvailable('alias', '752a91887740001038e286a2681061fb'); // sn_cicd_spoke.CICD
 
 // For more info => https://docs.servicenow.com/csh?topicname=cicd-api.html&version=latest
