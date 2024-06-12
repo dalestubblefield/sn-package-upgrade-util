@@ -186,7 +186,8 @@ upgradeUtil.prototype = {
 
                 var currentVersion = packages.getValue('version');
                 if (currentVersion != packageDetails.requested_version) {
-                    this.log.push("\n[ ] " + packageDetails.notes + " <<< Upgrade requested ");
+                    //this.log.push("\n[ ] " + packageDetails.notes + " <<< Upgrade requested ");
+                    this.log.push("\n[ ] " + packageDetails.notes);
                     payload.name = 'Upgrade ' + packageDetails.notes + ' to ' + packageDetails.requested_version;
                     payload.notes = this.notes;
                 } else {
@@ -200,8 +201,8 @@ upgradeUtil.prototype = {
             }
 
             // send the payload!
-            //var allBatchPlans = this._callAPI(payload, basicUserName, basicPassword);
-            var allBatchPlans = '';
+            var allBatchPlans = this._callAPI(payload, basicUserName, basicPassword);
+            //var allBatchPlans = '';
         }
 
         if (allBatchPlans) {
@@ -221,6 +222,10 @@ upgradeUtil.prototype = {
 
         var instanceName = gs.getProperty('instance_name');
         if (instanceName.indexOf("nowlearning") !== -1) { // need to add .lab to URL
+            instanceName = instanceName + ".lab";
+        }
+
+        if (instanceName.indexOf("instructor") !== -1) { // need to add .lab to URL
             instanceName = instanceName + ".lab";
         }
 
@@ -260,7 +265,8 @@ upgradeUtil.prototype = {
         // Check if the status code exists in the lookup object
         if (statusMessages.hasOwnProperty(statusCode)) {
             if (statusCode === 200) {
-                this.log.push("... Batch Install Plan Submitted successfully.");
+                //this.log.push("... Batch Install Plan Submitted successfully.");
+                this.log.push(" | Upgrade requested");
             } else {
                 (this.verbosity >= 0) && this.log.push("...ERROR: Request failed with unknown status code " + statusCode + "\n");
                 (this.verbosity >= 0) && gs.info(this.log);

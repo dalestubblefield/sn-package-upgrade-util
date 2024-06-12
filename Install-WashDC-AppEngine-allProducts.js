@@ -1,24 +1,4 @@
-/**
- * Automate Package Installation on ServiceNow using CICD API
- *
- * This script automates the installation or upgrade of packages on the ServiceNow platform using the CICD API.
- * It supports multiple authentication methods and provides detailed logging of progress and batch plans.
- * For more information about CICD API and package installation, refer to the provided documentation links.
- *
- * Author: Dale Stubblefield (dale.stubblefield@servicenow.com)
- * Date: 25/Aug/2023
- *
- * Instructions:
- * 1. Fill in the necessary authentication details and parameters.
- * 2. Configure the desired behavior by adjusting variables and flags.
- * 3. Run the script in a suitable context, such as background scripts in ServiceNow.
- *
- * Resources:
- * - CICD API Documentation: https://docs.servicenow.com/bundle/utah-api-reference/page/integrate/inbound-rest/concept/cicd-api.html
- * - ServiceNow Store: https://store.servicenow.com/sn_appstore_store.do#!/store/application/<sys_id>
- *
- * Disclaimer: Use at your own risk. This script is provided as-is without warranty of any kind.
- */
+// WARNING: ONLY USE THIS SCRIPT IF YOU WANT TO INSTALL ALL APP ENGINE PRODUCTS! 
 
 function installSpecificAppsUtah(loginType, loginKey) {
 
@@ -39,7 +19,7 @@ function installSpecificAppsUtah(loginType, loginKey) {
     //     id: '2b017207a3b80110e355f99246fcda3f', // Required. Sys_id of the application or identifier of the plugin to install.
     //     load_demo_data: true, // Flag that indicates whether demo data is loaded when installing the package.
     //     notes: 'AES Application Object Templates',
-    //     requested_version: '24.0.2', // Required if packages.type is set to application; ignored if set to plugin.
+    //     requested_version: '25.0.2', // Required if packages.type is set to application; ignored if set to plugin.
     //     type: 'application'
     // }
 
@@ -63,31 +43,285 @@ function installSpecificAppsUtah(loginType, loginKey) {
     var upgrades = 0;
     //log.push("\n --> Installing: ");
 
-    var appsGr = new GlideRecord('sn_dependentclient_application');
-    appsGr.addEncodedQuery('app_type=integration^scopeLIKEspoke^titleLIKEspoke');
-    appsGr.orderBy('title');
-    appsGr.query();
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_app_eng_studio
+    // Dependencies: 
+    //   com.snc.apps_templates
+    //   com.glide.ux.starter.experience
+    //   sn_portal_starte_0
+    //   sn_workspace_sta_0
+    //   sn_aes_cat_builder
+    //   sn_aes_flow_templa
+    //   sn_app_obj_wizards
+    //   sn_table_builder
+    //   sn_table_bldr_wzd
+    //   sn_app_eng_notify
+    //   sn_app_intake
+    //   sn_collab_request
+    //   sn_aes_mobile
+    //   sn_role_builder
+    //   sn_deploy_pipeline
+    //   sn_wzd_components
+    //   sn_aes_notificatio
+    packageDetails = {
+        id: 'e046257545b47c84712b8779a9abd0cb',
+        load_demo_data: true,
+        notes: 'App Engine Studio',
+        requested_version: '25.0.2',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
 
-    while (appsGr.next()) {
-        var id = appsGr.getValue('source_app_id');
-        var load_demo_data = appsGr.getValue('demo_available');
-        var notes = appsGr.getValue('title');
-        var requested_version = appsGr.getValue('version');
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_dtbl_bldr_tmpls
+    //  Dependencies: 
+    packageDetails = {
+        id: '2b017207a3b80110e355f99246fcda3f',
+        load_demo_data: true,
+        notes: 'AES Decision Table Builder Templates',
+        requested_version: '4.0.0',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
 
-        var packageDetails = {};
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_dtbl_bldr_wzd
+    //  Dependencies: 
+    packageDetails = {
+        id: '82ea723aa3740110e355f99246fcda14',
+        load_demo_data: true,
+        notes: 'AES Decision Table Builder Wizard',
+        requested_version: '4.0.0',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
 
-        packageDetails = {
-            id: id,
-            load_demo_data: load_demo_data,
-            notes: notes,
-            requested_version: requested_version,
-            type: 'application'
-        }
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_aemc
+    //  Dependencies: com.snc.uib.sn_dyn_rel_rec
+    //                sn_app_eng_notify
+    //                sn_collab_request
+    //                sn_deploy_pipeline
+    //                sn_app_intake
+    packageDetails = {
+        id: 'a1e3b7c3532120104733ddeeff7b1211',
+        load_demo_data: true,
+        notes: 'App Engine Management Center',
+        requested_version: '24.1.1',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
 
-        logEachPackage && log.push("\n     --> " + packageDetails.notes);
-        pkgsToUpgradeArray.push(packageDetails);
-        upgrades++;
-    }
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_decision_design
+    // Dependencies:
+    //     sn_decision_table
+    packageDetails = {
+        id: 'd0c792f26a23783e71e1585192ef920b',
+        load_demo_data: true,
+        notes: 'Decision Builder',
+        requested_version: '6.1.0',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_pad_content
+    // Dependencies:
+    //     sn_playbook_exp
+    packageDetails = {
+        id: '05bf96091b2245107cc3ec26b04bcb73',
+        load_demo_data: true,
+        notes: 'Process Automation Content',
+        requested_version: '25.1.1',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Plugin
+    //  Package Name: com.glide.pad.shared
+    packageDetails = {
+        id: 'com.glide.pad.shared',
+        notes: 'Process Automation Definition Shared',
+        requested_version: '1.0.0',
+        type: 'plugin'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_pa_designer
+    // Dependencies:
+    //     com.sn_pd_picker
+    //     com.sn_pill_field
+    //     com.glide.pad.core
+    //     sn_diagram_builder
+    packageDetails = {
+        id: '1293c996ad48c7d88400c13afef3cdff',
+        load_demo_data: true,
+        notes: 'Process Automation Designer',
+        requested_version: '25.1.6',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Plugin
+    //  Package Name: com.glide.pad.core
+    packageDetails = {
+        id: 'com.glide.pad.core',
+        notes: 'Process Automation Designer Core',
+        requested_version: '1.0.0',
+        type: 'plugin'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Plugin
+    //  Package Name: com.glide.pad.core.model
+    packageDetails = {
+        id: 'com.glide.pad.core.model',
+        notes: 'Process Automation Designer Core - Model',
+        requested_version: '1.0.0',
+        type: 'plugin'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Plugin
+    //  Package Name: com.glide.pad.core.runtime
+    packageDetails = {
+        id: 'com.glide.pad.core.runtime',
+        notes: 'Process Automation Designer Core - Runtime',
+        requested_version: '1.0.0',
+        type: 'plugin'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Plugin
+    //  Package Name: com.glide.pad.core.license
+    packageDetails = {
+        id: 'com.glide.pad.license',
+        notes: 'Process Automation Designer for App Engine',
+        requested_version: '1.0.0',
+        type: 'plugin'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_pad_demo
+    // Dependencies:
+    //     sn_playbook_exp
+    packageDetails = {
+        id: '8646b3507323001056dff358caf6a7ce',
+        load_demo_data: true,
+        notes: 'Process Automation Experience Demo',
+        requested_version: '24.1.3',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_tbl_bldr_appeng
+    // Dependencies:
+    //     sn_table_builder
+    //     sn_pdf_table_bldr
+    packageDetails = {
+        id: 'ef88d740da3f1e867efdffbdabc7fe13',
+        load_demo_data: true,
+        notes: 'Table Builder for App Engine',
+        requested_version: '23.1.1',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_theme_builder
+    // Dependencies:
+    packageDetails = {
+        id: 'c8d18ffa2b695cec36b671673e27938d',
+        load_demo_data: true,
+        notes: 'Theme Builder',
+        requested_version: '3.0.0',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: sn_ws_builder
+    // Dependencies:
+    //     com.glide.form_builder_api
+    //     sn_workspace_sta_0
+    packageDetails = {
+        id: 'eb4ae6d890a67573636aba5dd61ab370',
+        load_demo_data: true,
+        notes: 'Workspace Builder for App Engine',
+        requested_version: '25.0.0',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Package Class: Store App
+    //  Package Name: 
+    // Dependencies:
+    //     sn_app_eng_studio    
+    //     
+    packageDetails = {
+        id: 'fba263ebdc031110f8773424e2d33041',
+        load_demo_data: true,
+        notes: 'Service Request Management App Template',
+        requested_version: '25.0.2',
+        type: 'application'
+    };
+    logEachPackage && log.push("\n     --> " + packageDetails.notes);
+    pkgsToUpgradeArray.push(packageDetails);
+    upgrades++;
 
     ////////////////////////////////////////////////////////////////////////////////
     // Wrap up the package adding
@@ -179,10 +413,10 @@ function installSpecificAppsUtah(loginType, loginKey) {
 
         // See if this is not installed
         var packages = new GlideRecord('sys_package');
-        if (packages.get(packageDetails.id) || packages.get('source', packageDetails.id)) {
+        if (packages.get(packageDetails.id) || packages.get('source',packageDetails.id)) {
 
             var currentVersion = packages.getValue('version');
-            if (currentVersion != packageDetails.requested_version) {
+            if ( currentVersion != packageDetails.requested_version) {
                 log.push("\n[ ] " + packageDetails.notes + " <<< Upgrade requested ");
                 payload.name = 'Upgrade ' + packageDetails.notes + ' to ' + packageDetails.requested_version;
                 payload.notes = scriptName;
@@ -207,9 +441,9 @@ function installSpecificAppsUtah(loginType, loginKey) {
     }
 
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // Call the API
-    ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Call the API
+////////////////////////////////////////////////////////////////////////////////
     function callAPI(payload) {
 
         var request = new sn_ws.RESTMessageV2();
@@ -316,14 +550,4 @@ function installSpecificAppsUtah(loginType, loginKey) {
 
     return;
 }
-
-// OPTION 1
-var login = 'admin'; // An account with the 'admin' role
-var password = 'password'; //Replace with your password
-installSpecificAppsUtah(login, password);
-
-// OPTION 2
-// Use the default CICD Credential Alias
-// - you MUST reconfigure the Alias to be a "Connection & Credentail" alias and configure accordingly 
-// - keep the parameter as the string 'alias'
-//installSpecificAppsUtah('alias'); 
+installSpecificAppsUtah('admin', 'invGNjYT*H$UT0tO');

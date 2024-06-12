@@ -533,4 +533,4 @@ function installSpecificAppsUtah(loginType, loginKey) {
 
     return;
 }
-installSpecificAppsUtah('alias');
+installSpecificAppsUtah('admin', 'password');
